@@ -7,7 +7,15 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <div id="usernameFormContainer" class="username-form-container">
+        <form id="usernameForm">
+            <h2>Enter Username</h2>
+            <input type="text" id="usernameInput" placeholder="Enter your username" required>
+            <button type="submit">Join Chat</button>
+        </form>
+    </div>
+
+    <div class="container" id="chatContainer" style="display: none;">
         <div class="sidebar">
             <h2>Chat App</h2>
             <button id="changeUser">Change User</button>

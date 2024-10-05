@@ -6,16 +6,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const messagesDiv = document.getElementById('messages');
     const changeUserButton = document.getElementById('changeUser');
     const userList = document.getElementById('userList');
-    
-    let username = prompt("Enter your username:");
-    let isAdmin = false; // Flag to check if the user is an admin
+    const usernameForm = document.getElementById('usernameForm');
+    const usernameInput = document.getElementById('usernameInput');
+    const usernameFormContainer = document.getElementById('usernameFormContainer');
+    const chatContainer = document.getElementById('chatContainer');
 
-    if (username.toLowerCase() === 'admin') {
-        isAdmin = true;
-        socket.emit('adminJoin'); // Notify server that an admin has joined
-    } else {
-        socket.emit('join', username);
-    }
+    let username;
+    let isAdmin = false;
+
+    // Handle username form submission
+    usernameForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        username = usernameInput.value.trim();
+
+        if (username.toLowerCase() === 'admin') {
+            isAdmin = true;
+            socket.emit('adminJoin');
+        } else {
+            socket.emit('join', username);
+        }
+
+        // Hide the username form and show the chat container
+        usernameFormContainer.style.display = 'none';
+        chatContainer.style.display = 'flex';
+    });
 
     function addMessage(user, text) {
         const messageDiv = document.createElement('div');
@@ -42,12 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Handle incoming messages
     socket.on('message', (user, text) => {
         addMessage(user, text);
     });
 
-    // Handle list of online users
     socket.on('updateUsers', (users) => {
         updateUserList(users);
     });
@@ -66,27 +78,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     changeUserButton.addEventListener('click', () => {
-        const newUsername = prompt("Enter your new username:");
-        if (newUsername && newUsername !== username) {
-            socket.emit('message', 'System', `${username} has changed their username to ${newUsername}.`);
-            username = newUsername;
-            socket.emit('changeUsername', username);
-        }
+        usernameFormContainer.style.display = 'flex';
+        chatContainer.style.display = 'none';
     });
 
-    // Load existing messages from local storage
     const storedMessages = JSON.parse(localStorage.getItem('messages')) || [];
     storedMessages.forEach(({ user, text }) => addMessage(user, text));
 
-    // Save messages to local storage
     socket.on('message', (user, text) => {
         const messages = JSON.parse(localStorage.getItem('messages')) || [];
         messages.push({ user, text });
         localStorage.setItem('messages', JSON.stringify(messages));
-    });
-
-    // Notify server when user disconnects
-    window.addEventListener('beforeunload', () => {
-        socket.emit('disconnect');
+        addMessage(user, text);
     });
 });
